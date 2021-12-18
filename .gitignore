@@ -1,0 +1,8 @@
+﻿# DIRECTORY
+# ./dist
+./vscode
+node_modules
+
+
+# FILE
+package-lock.json
