@@ -1,7 +1,7 @@
 {
-	"name": "prj-magic_cube",
+	"name": "prj-threejs-magic-cube",
 	"version": "1.0.0",
-	"description": " Three.js + Typescript + Webpack 开发的魔方项目",
+	"description": "Three.js + Typescript + Webpack 开发的魔方项目",
 	"main": "",
 	"scripts": {
 		"dev": "webpack-dev-server",

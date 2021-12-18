@@ -1,7 +1,6 @@
-# Three.js 跳一跳小游戏
+# Three.js 魔方
 
-使用 Three.js 和 Typescript 开发的跳一跳游戏
-
+Three.js + Typescript + Webpack 开发的魔方项目
 
 |          |            |
 | -------- | ---------- |
