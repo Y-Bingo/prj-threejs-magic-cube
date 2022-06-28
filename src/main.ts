@@ -1,11 +1,13 @@
-import { AmbientLight, Mesh, PerspectiveCamera, PointLight, Scene, Vector3, WebGLRenderer } from 'three';
-import BasicRubik from './demo';
-const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+import { AmbientLight, BoxGeometry, Mesh, MeshLambertMaterial, PerspectiveCamera, PointLight, Scene, Vector3, WebGLRenderer } from 'three';
+// import BasicRubik from './demo';
+// import { BasicRubik } from './view/rubik';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 /**
  * 入口类
  */
 export class Main {
+	public canvas: HTMLCanvasElement;
 	public context: WebGLRenderingContext;
 	public width: number;
 	public height: number;
@@ -15,13 +17,15 @@ export class Main {
 	public viewCenter: Vector3; // 原点
 	public renderer: WebGLRenderer; // 渲染器
 	public camera: PerspectiveCamera; // 摄像机
+	public orbitControls: OrbitControls; // 控制器
 
-	constructor() {
+	constructor(canvas: HTMLCanvasElement) {
+		this.canvas = canvas;
 		this.context = canvas.getContext('webgl');
-		// this.width = canvas.width;
-		// this.height = canvas.height;
-		this.width = window.innerWidth;
-		this.height = window.innerHeight;
+		this.width = canvas.width;
+		this.height = canvas.height;
+		// this.width = window.innerWidth;
+		// this.height = window.innerHeight;
 		this.devicePixelRatio = window.devicePixelRatio;
 		this.viewCenter = new Vector3(0, 0, 0);
 
@@ -30,6 +34,7 @@ export class Main {
 		this.initCamera();
 		this.initLight();
 		this.initObject();
+		this.initControl();
 		// this.render();
 	}
 
@@ -44,8 +49,8 @@ export class Main {
 		renderer.setSize(this.width, this.height); // 设置渲染器的宽度和高度
 		renderer.setClearColor('#000000', 1.0); // 设置背景颜色
 		renderer.setPixelRatio(this.devicePixelRatio);
-		canvas.width = this.width * this.devicePixelRatio;
-		canvas.height = this.height * this.devicePixelRatio;
+		// canvas.width = this.width * this.devicePixelRatio;
+		// canvas.height = this.height * this.devicePixelRatio;
 
 		this.renderer = renderer;
 	}
@@ -60,8 +65,8 @@ export class Main {
 		// camera.lookAt(this.viewCenter);
 		// this.camera = camera;
 
-		this.camera = new PerspectiveCamera(45, this.width / this.height, 1, 1500);
-		this.camera.position.set(0, 0, 300 / this.camera.aspect);
+		this.camera = new PerspectiveCamera(45, this.width / this.height, 500);
+		this.camera.position.set(0, 0, 1000);
 		this.camera.up.set(0, 1, 0); //正方向
 		this.camera.lookAt(this.viewCenter);
 	}
@@ -77,7 +82,6 @@ export class Main {
 		this.pointLight.position.set(70, 112, 98);
 		// 环境光
 		this.ambientLight = new AmbientLight(0x333);
-
 		this.scene.add(this.pointLight);
 		this.scene.add(this.ambientLight);
 	}
@@ -87,8 +91,8 @@ export class Main {
 	 */
 	private cube: Mesh;
 	private initObject(): void {
-		var rubik = new BasicRubik(this);
-		rubik.model();
+		// var rubik = new BasicRubik(this);
+		// rubik.model();
 
 		// let rubik = new BasicRubik();
 		// for (var i = 0; i < rubik.cubes.length; i++) {
@@ -96,13 +100,20 @@ export class Main {
 		// 	this.scene.add(item);
 		// }
 
-		// let geometry = new BoxGeometry(100, 100, 100);
-		// let material = new MeshLambertMaterial({ color: 0xffffff });
-		// let cube = new Mesh(geometry, material);
-		// cube.position.set(0, 0, 0);
+		let geometry = new BoxGeometry(100, 100, 100);
+		let material = new MeshLambertMaterial({ color: 0xffffff });
+		let cube = new Mesh(geometry, material);
+		cube.position.set(0, 0, 0);
 
-		// this.cube = cube;
-		// this.scene.add(cube);
+		this.cube = cube;
+		this.scene.add(cube);
+	}
+
+	/**
+	 * 初始化控制器
+	 */
+	private initControl(): void {
+		this.orbitControls = new OrbitControls(this.camera, this.canvas);
 	}
 
 	/**
@@ -117,14 +128,14 @@ export class Main {
 	 * 渲染
 	 */
 	public render(): void {
-		// this.renderer.clear();
-		// this.renderer.render(this.scene, this.camera);
-		// this.cube.rotation.y += 0.005;
-		// this.cube.rotation.x += 0.005;
-		// requestAnimationFrame(this.render);
-
+		// render
 		this.renderer.clear();
 		this.renderer.render(this.scene, this.camera);
+		this.update();
+		this.orbitControls.update();
+	}
+
+	public update(): void {
 		requestAnimationFrame(this.render.bind(this));
 	}
 }
