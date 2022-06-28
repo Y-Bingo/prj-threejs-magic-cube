@@ -10,9 +10,9 @@ export const BasicParams = {
 	y: 0,
 	z: 0,
 	num: 3,
-	len: 50,
+	len: 30,
 	colors: [
-		'#fff6b02', // 右
+		'#ff6b02', // 右
 		'#dd422f', // 左
 		'#ffffff', // 上
 		'#fdcd02', // 下

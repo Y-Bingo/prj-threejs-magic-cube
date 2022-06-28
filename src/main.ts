@@ -1,7 +1,6 @@
-import { AmbientLight, BoxGeometry, Mesh, MeshLambertMaterial, PerspectiveCamera, PointLight, Scene, Vector3, WebGLRenderer } from 'three';
-// import BasicRubik from './demo';
-// import { BasicRubik } from './view/rubik';
+import { AmbientLight, AxesHelper, Mesh, PerspectiveCamera, PointLight, Scene, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { BasicRubik } from './view/rubik';
 
 /**
  * 入口类
@@ -35,6 +34,7 @@ export class Main {
 		this.initLight();
 		this.initObject();
 		this.initControl();
+		this.initDebug();
 		// this.render();
 	}
 
@@ -59,16 +59,15 @@ export class Main {
 	 * 初始化 摄像机
 	 */
 	private initCamera(): void {
-		// const camera = new PerspectiveCamera(45, this.width / this.height, 1000);
-		// camera.position.set(200, 400, 600);
-		// camera.up.set(0, 1, 0);
-		// camera.lookAt(this.viewCenter);
-		// this.camera = camera;
-
-		this.camera = new PerspectiveCamera(45, this.width / this.height, 500);
-		this.camera.position.set(0, 0, 1000);
+		this.camera = new PerspectiveCamera(45, this.width / this.height, 100);
+		this.camera.position.set(300 , 300 , 300);
 		this.camera.up.set(0, 1, 0); //正方向
 		this.camera.lookAt(this.viewCenter);
+
+		this.orbitControls = new OrbitControls(this.camera, this.canvas);
+		this.orbitControls.enableZoom = false; // 禁止缩放
+		this.orbitControls.rotateSpeed = 2; // 旋转速度
+		this.orbitControls.target = this.viewCenter; // 环绕中心
 	}
 
 	/**
@@ -81,7 +80,8 @@ export class Main {
 		this.pointLight = new PointLight(0xffffff, 1, 1000);
 		this.pointLight.position.set(70, 112, 98);
 		// 环境光
-		this.ambientLight = new AmbientLight(0x333);
+		this.ambientLight = new AmbientLight(0xffffff);
+
 		this.scene.add(this.pointLight);
 		this.scene.add(this.ambientLight);
 	}
@@ -91,29 +91,25 @@ export class Main {
 	 */
 	private cube: Mesh;
 	private initObject(): void {
-		// var rubik = new BasicRubik(this);
+		let rubik = new BasicRubik();
+		for (let i = 0; i < rubik.cubes.length; i++) {
+			this.scene.add(rubik.cubes[i]);
+		}
+
+		// let rubik = new Rubik(this);
 		// rubik.model();
 
-		// let rubik = new BasicRubik();
-		// for (var i = 0; i < rubik.cubes.length; i++) {
-		// 	var item = rubik.cubes[i];
-		// 	this.scene.add(item);
-		// }
+		// let geometry = new BoxGeometry(100, 100, 100);
+		// let canvas = createFaceTexture('#ff6b02');
+		// document.body.append(canvas);
+		// let texture = new Texture(createFaceTexture('#ff6b02'));
+		// texture.needsUpdate = true;
+		// let material = new MeshBasicMaterial({ map: texture });
+		// let cube = new Mesh(geometry, material);
+		// cube.position.set(0, 0, 0);
 
-		let geometry = new BoxGeometry(100, 100, 100);
-		let material = new MeshLambertMaterial({ color: 0xffffff });
-		let cube = new Mesh(geometry, material);
-		cube.position.set(0, 0, 0);
-
-		this.cube = cube;
-		this.scene.add(cube);
-	}
-
-	/**
-	 * 初始化控制器
-	 */
-	private initControl(): void {
-		this.orbitControls = new OrbitControls(this.camera, this.canvas);
+		// this.cube = cube;
+		// this.scene.add(cube);
 	}
 
 	/**
@@ -122,6 +118,19 @@ export class Main {
 	private initScene(): void {
 		const scene = new Scene();
 		this.scene = scene;
+	}
+
+	/**
+	 * 初始化控制器
+	 */
+	private initControl(): void {}
+
+	/**
+	 * 初始化 Debug
+	 */
+	private initDebug(): void {
+		const aseHelper = new AxesHelper(100);
+		this.scene.add(aseHelper);
 	}
 
 	/**
