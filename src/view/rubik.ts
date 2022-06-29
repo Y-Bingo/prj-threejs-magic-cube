@@ -1,4 +1,5 @@
-import { BoxGeometry, Mesh, MeshLambertMaterial, Texture } from 'three';
+import { BoxGeometry, Group, Mesh, MeshLambertMaterial, Texture, Vector3 } from 'three';
+import { Main } from '../main';
 import { BasicParams } from '../model/constant';
 import { createFaceTexture } from '../utils/texture';
 
@@ -53,11 +54,42 @@ function SimpleCube(x: number, y: number, z: number, num: number, len: number, c
 }
 
 export class BasicRubik {
+	public type: string; // 魔方类型
 	public cubes: Mesh[];
-
-	constructor() {
-		this.cubes = SimpleCube(BasicParams.x, BasicParams.y, BasicParams.z, BasicParams.num, BasicParams.len, BasicParams.colors); //生成魔方小正方体
+	public contain: Group;
+	private main: Main;
+	constructor(main: Main) {
+		this.main = main;
 	}
 
-	public model(): void {}
+	public model(type: string): void {
+		this.contain = new Group();
+		this.contain.name = type;
+		//生成魔方小正方体
+		this.cubes = SimpleCube(BasicParams.x, BasicParams.y, BasicParams.z, BasicParams.num, BasicParams.len, BasicParams.colors);
+		// 分组
+		for (let i = 0; i < this.cubes.length; i++) {
+			let item = this.cubes[i];
+			this.contain.add(item);
+		}
+		this.main.scene.add(this.contain);
+
+		if (type === 'front-rubik') {
+			this.contain.rotateY((45 / 180) * Math.PI);
+		} else {
+			this.contain.rotateY(((270 - 45) / 180) * Math.PI);
+		}
+		this.contain.rotateOnAxis(new Vector3(1, 0, 1), (25 / 180) * Math.PI);
+	}
+
+	public resizeHeight(percent: number, transformTag: number) {
+		if (percent < this.main.minPercent) {
+			percent = this.main.minPercent;
+		}
+		if (percent > 1 - this.main.minPercent) {
+			percent = 1 - this.main.minPercent;
+		}
+		this.contain.scale.set(percent, percent, percent);
+		this.contain.position.y = this.main.originHeigh * (0.5 - percent / 2) * transformTag;
+	}
 }

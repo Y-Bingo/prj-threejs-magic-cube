@@ -1,6 +1,7 @@
-import { AmbientLight, AxesHelper, Mesh, PerspectiveCamera, PointLight, Scene, Vector3, WebGLRenderer } from 'three';
+import { AmbientLight, AxesHelper, PerspectiveCamera, PointLight, Scene, Vector3, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { BasicRubik } from './view/rubik';
+import { TouchLine } from './view/touchLine';
 
 /**
  * 入口类
@@ -18,6 +19,10 @@ export class Main {
 	public camera: PerspectiveCamera; // 摄像机
 	public orbitControls: OrbitControls; // 控制器
 
+	public minPercent = 0.25; // 正方视图至少占 25 % 区域
+	public originWidth: number = 0; // 裁切面宽度
+	public originHeigh: number = 0; // 裁切面高度
+
 	constructor(canvas: HTMLCanvasElement) {
 		this.canvas = canvas;
 		this.context = canvas.getContext('webgl');
@@ -34,6 +39,7 @@ export class Main {
 		this.initLight();
 		this.initObject();
 		this.initControl();
+		this.initEvent();
 		this.initDebug();
 		// this.render();
 	}
@@ -60,14 +66,17 @@ export class Main {
 	 */
 	private initCamera(): void {
 		this.camera = new PerspectiveCamera(45, this.width / this.height, 100);
-		this.camera.position.set(300 , 300 , 300);
+		this.camera.position.set(0, 0, 300);
 		this.camera.up.set(0, 1, 0); //正方向
 		this.camera.lookAt(this.viewCenter);
 
-		this.orbitControls = new OrbitControls(this.camera, this.canvas);
-		this.orbitControls.enableZoom = false; // 禁止缩放
-		this.orbitControls.rotateSpeed = 2; // 旋转速度
-		this.orbitControls.target = this.viewCenter; // 环绕中心
+		// this.orbitControls = new OrbitControls(this.camera, this.canvas);
+		// this.orbitControls.enableZoom = false; // 禁止缩放
+		// this.orbitControls.rotateSpeed = 2; // 旋转速度
+		// this.orbitControls.target = this.viewCenter; // 环绕中心
+
+		this.originHeigh = Math.tan((22.5 / 180) * Math.PI) * this.camera.position.z * 2;
+		this.originWidth = this.originHeigh * this.camera.aspect;
 	}
 
 	/**
@@ -89,27 +98,19 @@ export class Main {
 	/**
 	 * 初始化 对象
 	 */
-	private cube: Mesh;
+	private frontRubik: BasicRubik;
+	private endRubik: BasicRubik;
+	private touchLine: TouchLine;
 	private initObject(): void {
-		let rubik = new BasicRubik();
-		for (let i = 0; i < rubik.cubes.length; i++) {
-			this.scene.add(rubik.cubes[i]);
-		}
+		this.frontRubik = new BasicRubik(this);
+		this.frontRubik.model('front-rubik');
+		this.frontRubik.resizeHeight(0.5, 1);
 
-		// let rubik = new Rubik(this);
-		// rubik.model();
+		this.endRubik = new BasicRubik(this);
+		this.endRubik.model('end-rubik');
+		this.endRubik.resizeHeight(0.5, -1);
 
-		// let geometry = new BoxGeometry(100, 100, 100);
-		// let canvas = createFaceTexture('#ff6b02');
-		// document.body.append(canvas);
-		// let texture = new Texture(createFaceTexture('#ff6b02'));
-		// texture.needsUpdate = true;
-		// let material = new MeshBasicMaterial({ map: texture });
-		// let cube = new Mesh(geometry, material);
-		// cube.position.set(0, 0, 0);
-
-		// this.cube = cube;
-		// this.scene.add(cube);
+		this.touchLine = new TouchLine(this);
 	}
 
 	/**
@@ -125,12 +126,46 @@ export class Main {
 	 */
 	private initControl(): void {}
 
+	private initEvent(): void {
+		this.canvas.addEventListener('mousedown', this.onTouchStart.bind(this));
+		this.canvas.addEventListener('mouseup', this.onTouchEnd.bind(this));
+		this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+	}
+
 	/**
 	 * 初始化 Debug
 	 */
 	private initDebug(): void {
 		const aseHelper = new AxesHelper(100);
 		this.scene.add(aseHelper);
+	}
+
+	private touchStartX: number;
+	private touchStartY: number;
+	private onTouchStart(evt): void {
+		this.touchStartX = evt.clientX;
+		this.touchStartY = evt.clientY;
+		if (this.touchLine?.isHover(evt)) {
+			this.touchLine.enable();
+		}
+	}
+
+	private onTouchEnd(evt): void {
+		this.touchLine.disable();
+	}
+
+	private onMouseMove(evt): void {
+		if (this.touchLine.isActive) {
+			this.touchLine.move(evt.clientY);
+			let frontPercent = evt.clientY / this.canvas.height;
+			let endPercent = 1 - frontPercent;
+			this.resizeRubik(frontPercent, endPercent);
+		}
+	}
+
+	private resizeRubik(frontPercent: number, endPercent: number): void {
+		this.frontRubik.resizeHeight(frontPercent, 1);
+		this.endRubik.resizeHeight(endPercent, -1);
 	}
 
 	/**
